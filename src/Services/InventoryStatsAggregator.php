@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AIArmada\FilamentInventory\Services;
 
-use AIArmada\FilamentInventory\Support\InventoryOwnerScope;
 use AIArmada\Inventory\Models\InventoryAllocation;
 use AIArmada\Inventory\Models\InventoryLevel;
 use AIArmada\Inventory\Models\InventoryLocation;
 use AIArmada\Inventory\Models\InventoryMovement;
+use AIArmada\Inventory\Support\InventoryOwnerScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 
@@ -192,20 +192,17 @@ final class InventoryStatsAggregator
      */
     private function countDistinctSkus(): int
     {
-        $baseQuery = InventoryOwnerScope::applyToQueryByLocationRelation(
+        $scopedDistinctSkuQuery = InventoryOwnerScope::applyToQueryByLocationRelation(
             InventoryLevel::query(),
             'location'
-        );
+        )
+            ->select('inventoryable_type', 'inventoryable_id')
+            ->distinct();
 
-        return (int) (clone $baseQuery)
-            ->selectRaw('COUNT(*) as count')
-            ->fromSub(
-                (clone $baseQuery)
-                    ->select('inventoryable_type', 'inventoryable_id')
-                    ->distinct(),
-                'distinct_skus'
-            )
-            ->value('count');
+        return (int) InventoryLevel::query()
+            ->getQuery()
+            ->fromSub($scopedDistinctSkuQuery->toBase(), 'distinct_skus')
+            ->count();
     }
 
     /**
