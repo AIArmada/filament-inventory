@@ -1,8 +1,10 @@
 ---
-title: Resources
+title: Usage
 ---
 
-# Resources
+# Usage
+
+This guide focuses on the shipped resources and the operator workflows they support.
 
 The package provides six Filament resources for managing inventory data.
 
