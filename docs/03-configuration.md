@@ -37,7 +37,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'defaults' => [
-        // Costing method for valuation: fifo, lifo, average, specific
+        // Costing method for valuation: fifo, lifo, weighted_average, standard, specific_identification
         'costing_method' => env('FILAMENT_INVENTORY_COSTING_METHOD', 'fifo'),
     ],
 
@@ -121,7 +121,7 @@ Batches expiring within this number of days will appear in the "Expiring Batches
 ],
 ```
 
-Options (`AIArmada\Inventory\Enums\CostingMethod`):
+Options (anything else falls back to `fifo`):
 - `fifo` — First In, First Out
 - `lifo` — Last In, First Out
 - `weighted_average` — Weighted Average Cost
@@ -163,8 +163,7 @@ Lower numbers appear first in navigation.
 ],
 ```
 
-Dashboard stats are cached for this many seconds. Set to `0` or lower to
-bypass the cache entirely.
+Dashboard stats are cached for this many seconds. Set to `0` to disable caching.
 
 ## Resource overrides
 

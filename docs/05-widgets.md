@@ -120,7 +120,7 @@ Batches approaching expiry date.
 
 ## Reorder Suggestions Widget
 
-AI-generated reorder recommendations.
+Auto-generated reorder recommendations.
 
 ```php
 'features' => [
@@ -176,7 +176,7 @@ Total inventory value by costing method.
 ],
 
 'defaults' => [
-    'costing_method' => 'fifo', // fifo, lifo, average, specific
+    'costing_method' => 'fifo', // fifo, lifo, weighted_average, standard, specific_identification
 ],
 ```
 
@@ -240,11 +240,10 @@ Widgets are automatically registered with the panel. To customize placement:
 
 ```php
 use AIArmada\FilamentInventory\Widgets\InventoryStatsWidget;
-use Filament\Pages\Dashboard;
 
-class AdminDashboard extends Dashboard
+class Dashboard extends BaseDashboard
 {
-    public function getWidgets(): array
+    protected function getWidgets(): array
     {
         return [
             InventoryStatsWidget::class,

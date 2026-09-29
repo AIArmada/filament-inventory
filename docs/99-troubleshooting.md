@@ -52,21 +52,18 @@ php artisan filament:clear-cached-components
 
 ### Resources not visible
 
-**Problem:** Batches or Serial Numbers don't appear in navigation.
+**Problem:** Some resources don't appear in navigation.
 
-**Solution:** Only those two resources are feature-flagged, and both default to
-enabled. Check the toggles in config:
+**Solution:** Check feature toggles in config:
 
 ```php
 // config/filament-inventory.php
 'features' => [
-    'batch_resource' => true,  // InventoryBatchResource
-    'serial_resource' => true, // InventorySerialResource
+    // Only these two resource toggles exist, and both default to true.
+    'batch_resource' => true,   // Set false to hide batches
+    'serial_resource' => true,  // Set false to hide serials
 ],
 ```
-
-Locations, Levels, Movements, and Allocations are always registered — they have
-no toggle.
 
 ### Widgets not showing
 
@@ -83,17 +80,18 @@ no toggle.
 ],
 ```
 
-2. Widgets are registered by the plugin; to place one on a custom page add it
-via the page's widgets array:
+2. Register widgets with your dashboard:
 ```php
 use AIArmada\FilamentInventory\Widgets\InventoryStatsWidget;
 
-// Filament v5: a Page/Livewire component returns widgets from getHeaderWidgets()
-protected function getHeaderWidgets(): array
+class Dashboard extends BaseDashboard
 {
-    return [
-        InventoryStatsWidget::class,
-    ];
+    protected function getWidgets(): array
+    {
+        return [
+            InventoryStatsWidget::class,
+        ];
+    }
 }
 ```
 
@@ -171,15 +169,7 @@ OwnerContext::setForRequest($currentTeam);
 
 1. Check database indexes on frequently filtered columns
 2. Reduce default items per page
-3. Disable real-time polling in the table definition (there is no
-   `filament-inventory.tables.poll` config key — `tables` only holds
-   `expiry_warning_days`):
-```php
-public static function table(Table $table): Table
-{
-    return parent::table($table)->poll(false);
-}
-```
+3. Slow down widget polling by extending the widget and overriding `$pollingInterval` (there is no global `tables.poll` toggle).
 
 ## Action Errors
 
@@ -199,7 +189,7 @@ $level = InventoryLevel::query()
 dump([
     'on_hand' => $level->quantity_on_hand,
     'reserved' => $level->quantity_reserved,
-    'available' => $level->quantity_available,
+    'available' => $level->available,
 ]);
 ```
 
@@ -209,11 +199,10 @@ dump([
 
 **Solution:** Ensure all required fields are provided:
 
-- `location_id`
 - `inventoryable_type` (full class name)
 - `inventoryable_id`
-- `movement_type` — one of `AIArmada\Inventory\Enums\MovementType`: `receipt`,
-  `shipment`, `transfer`, `adjustment`, `allocation`, `release`
+- `from_location_id` / `to_location_id` (nullable)
+- `type` (receipt, shipment, transfer, adjustment, allocation, release)
 - `quantity`
 
 ## Debug Mode
