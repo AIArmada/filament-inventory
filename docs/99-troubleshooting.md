@@ -52,18 +52,21 @@ php artisan filament:clear-cached-components
 
 ### Resources not visible
 
-**Problem:** Some resources don't appear in navigation.
+**Problem:** Batches or Serial Numbers don't appear in navigation.
 
-**Solution:** Check feature toggles in config:
+**Solution:** Only those two resources are feature-flagged, and both default to
+enabled. Check the toggles in config:
 
 ```php
 // config/filament-inventory.php
 'features' => [
-    // Only these two resource toggles exist, and both default to true.
-    'batch_resource' => true,   // Set false to hide batches
-    'serial_resource' => true,  // Set false to hide serials
+    'batch_resource' => true,  // InventoryBatchResource
+    'serial_resource' => true, // InventorySerialResource
 ],
 ```
+
+Locations, Levels, Movements, and Allocations are always registered — they have
+no toggle.
 
 ### Widgets not showing
 
@@ -80,18 +83,17 @@ php artisan filament:clear-cached-components
 ],
 ```
 
-2. Register widgets with your dashboard:
+2. Widgets are registered by the plugin; to place one on a custom page add it
+via the page's widgets array:
 ```php
 use AIArmada\FilamentInventory\Widgets\InventoryStatsWidget;
 
-class Dashboard extends BaseDashboard
+// Filament v5: a Page/Livewire component returns widgets from getHeaderWidgets()
+protected function getHeaderWidgets(): array
 {
-    protected function getWidgets(): array
-    {
-        return [
-            InventoryStatsWidget::class,
-        ];
-    }
+    return [
+        InventoryStatsWidget::class,
+    ];
 }
 ```
 
@@ -169,7 +171,15 @@ OwnerContext::setForRequest($currentTeam);
 
 1. Check database indexes on frequently filtered columns
 2. Reduce default items per page
-3. Slow down widget polling by extending the widget and overriding `$pollingInterval` (there is no global `tables.poll` toggle).
+3. Disable real-time polling in the table definition (there is no
+   `filament-inventory.tables.poll` config key — `tables` only holds
+   `expiry_warning_days`):
+```php
+public static function table(Table $table): Table
+{
+    return parent::table($table)->poll(false);
+}
+```
 
 ## Action Errors
 
@@ -227,7 +237,7 @@ Log::channel('inventory')->debug('Stock received', $data);
 
 ## Getting Help
 
-1. Check the [core inventory package documentation](../inventory/docs/)
+1. Check the [core inventory package documentation](../../inventory/docs/)
 2. Review the [source code](https://github.com/aiarmada/commerce/packages/filament-inventory)
 3. Open an issue on GitHub with:
    - PHP version
